@@ -15,7 +15,6 @@ var app = module.exports = express();
 var config = require('./config/database');
 
 
-
 // all environments
 app.set('port', process.env.PORT || 8000);
 app.use(session({
@@ -23,7 +22,7 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
@@ -50,22 +49,19 @@ if ('development' == app.get('env')) {
 app.use(morgan('dev'));
 
 
-
 var server = http.createServer(app);
 
 mongoose.connect(config.database);
+var db = mongoose.connection;
 //passport authenticate
 //require('./config/passport')(passport);
 
-var db = mongoose.connection;
 fs.readdirSync('./apis').forEach(function (file) {
     if (file.substr(-3) == '.js') {
         var route = require('./apis/' + file);
         route.controller(app);
     }
 });
-
-
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function callback() {
