@@ -48,3 +48,13 @@ http//:{server}/api/v1/services
 GET /services/{id} Find a model instance by {{id}} from the data source.
 param:id
 http//:{server}/api/v1/services/59896b124381b7590872605a
+================
+PUT /services/{id} Patch attributes for a model instance and persist it into the data source.
+method:PUT
+http//:{server}/api/v1/services/59896b124381b7590872605a
+================
+GET /services/{id}/price Get the price information of this service
+http//:{server}/api/v1/services/59896b124381b7590872605a/price
+================
+GET /services/{id}/execution Get the list of execution of this service
+http//:{server}/api/v1/services/59896b124381b7590872605a/execution
