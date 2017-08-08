@@ -51,7 +51,7 @@ var ServiceSchema = new Schema({
     createdAT: {type: Date, default: Date.now, index: true},
     updateAT: {type: Date, default: Date.now, index: true},
     update: [{
-        time: {type: Date, default: Date.now, index: true},
+        time: {type: String},
         updateBy: {type: String}
     }],
     execute: [{name: {type: String}}]
