@@ -152,12 +152,18 @@ module.exports.controller = function (app) {
         });
     });
 
-    //api get service by id
+    //api get service by id and name
     app.get('/api/v1/services/:id', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
-        Service.findOne({_id: req.params.id}).exec(function (err, service) {
+        var where = {};
+        if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            where = {_id: req.params.id};
+        } else {
+            where = { $text: { $search: req.params.id }};
+        }
+        Service.findOne(where).exec(function (err, service) {
             if (err) {
                 res.status(500);
             }
@@ -283,7 +289,7 @@ module.exports.controller = function (app) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json({msg:"Update status active has been successfully!"});
+            res.status(200).json({msg: "Update status active has been successfully!"});
         });
 
     });
