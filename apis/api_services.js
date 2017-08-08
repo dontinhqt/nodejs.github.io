@@ -6,7 +6,7 @@ var Service = require('../models/services');
 
 module.exports.controller = function (app) {
     app.get('/', function (req, res, next) {
-        res.status(200).json({"response": "Hello a api"});
+        res.status(200).json({msg: "Hello a api"});
         return next();
     });
 
@@ -157,7 +157,6 @@ module.exports.controller = function (app) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
-        console.log(req.params.id);
         Service.findOne({_id: req.params.id}).exec(function (err, service) {
             if (err) {
                 res.status(500);
