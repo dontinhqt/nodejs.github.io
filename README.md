@@ -1,5 +1,7 @@
 # nodejs.github.io
 
+server: https://demo06.herokuapp.com
+
 config datatbase:
   config>database.js
   'database':'mongodb://{host_name}/{database_name}'
