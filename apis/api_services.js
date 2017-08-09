@@ -25,7 +25,7 @@ module.exports.controller = function (app) {
                 res.status(500).json({"err": err});
                 return next(err);
             }
-            res.status(200).json({data: services});
+            res.status(200).json(services);
         });
 
     });
@@ -45,7 +45,7 @@ module.exports.controller = function (app) {
                 res.status(500).json({"err": err});
                 return next(err);
             }
-            res.status(200).json({"data": services});
+            res.status(200).json(services);
         });
     });
 
@@ -66,7 +66,7 @@ module.exports.controller = function (app) {
                 res.status(500).json({"err": err});
                 return next(err);
             }
-            res.status(200).json({"data": services});
+            res.status(200).json(services);
         });
     });
     //api get services by group
@@ -84,7 +84,7 @@ module.exports.controller = function (app) {
                 res.status(500).json({"err": err});
                 return next(err);
             }
-            res.status(200).json({"response": services});
+            res.status(200).json(services);
         });
     });
 
