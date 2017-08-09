@@ -311,7 +311,7 @@ module.exports.controller = function (app) {
         });
     });
 
-    //api replace attributes
+    //api replace attributes by id
     app.post('/api/v1/services/:id/replace',function(req,res){
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
@@ -380,4 +380,5 @@ module.exports.controller = function (app) {
             });
         });
     });
+
 };
