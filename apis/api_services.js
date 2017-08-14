@@ -60,7 +60,7 @@ module.exports.controller = function (app) {
         if (req.query.page) {
             page = parseInt(req.query.page);
         }
-        console.log(serviceGroup);
+
         Service.find({'group': serviceGroup}).skip(page).limit(limit).exec(function (err, services) {
             if (err) {
                 res.status(500).json({"err": err});
@@ -89,7 +89,7 @@ module.exports.controller = function (app) {
     });
 
     app.post('/api/v1/services', function (req, res, next) {
-        var service_name = req.body.service_name ? req.body.service_name : '';
+        var name = req.body.name ? req.body.name : '';
         var active = req.body.active ? req.body.active : true;
         var prices = req.body.price ? req.body.price : new Array();
         var updates = req.body.update ? req.body.update : new Array();
@@ -134,7 +134,7 @@ module.exports.controller = function (app) {
         }
 
         var service = new Service({
-            service_name: service_name,
+            name: name,
             active: active,
             price: priceArr,
             update: updateArr,
@@ -176,7 +176,7 @@ module.exports.controller = function (app) {
             res.status(404).json({'msg': 'Request not fount'});
         }
 
-        var service_name = req.body.service_name ? req.body.service_name : '';
+        var name = req.body.name ? req.body.name : '';
         var active = true;
         var prices = req.body.price ? req.body.price : new Array();
         var updates = req.body.update ? req.body.update : new Array();
@@ -224,7 +224,7 @@ module.exports.controller = function (app) {
             if (err) {
                 res.status(500);
             }
-            service.service_name = service_name;
+            service.name = name;
             service.active = active;
             service.price = priceArr;
             service.update = updateArr;
@@ -317,7 +317,7 @@ module.exports.controller = function (app) {
             res.status(404).json({'msg': 'Request not fount'});
         }
 
-        var service_name = req.body.service_name ? req.body.service_name : '';
+        var name = req.body.name ? req.body.name : '';
         var active = true;
         var prices = req.body.price ? req.body.price : new Array();
         var updates = req.body.update ? req.body.update : new Array();
@@ -365,7 +365,7 @@ module.exports.controller = function (app) {
             if (err) {
                 res.status(500);
             }
-            service.service_name = service_name;
+            service.name = name;
             service.active = active;
             service.price = priceArr;
             service.update = updateArr;

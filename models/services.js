@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 // set up a mongoose model
 var ServiceSchema = new Schema({
-    service_name: {
+    name: {
         type: String,
         unique: true,
     },
