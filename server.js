@@ -11,7 +11,7 @@ var express = require('express'),
 
 var app = module.exports = express();
 
-//var passport = require('passport');
+var passport = require('passport');
 var config = require('./config/database');
 
 
@@ -23,24 +23,25 @@ app.use(session({
     saveUninitialized: true
 }));
 app.use(function (req, res, next) {
+    res.setHeader('Content-Type','application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
     next();
 });
 //user passport session and express session
-//app.use(passport.initialize());
-//app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(methodOverride());
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 //passport serialize a User
-//passport.serializeUser(function(user, done) {
-//    done(null, user);
-//});
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
 
-// error handling middleware should be loaded after the loading the routes
+
 if ('development' == app.get('env')) {
     app.use(errorHandler());
 }
@@ -53,13 +54,13 @@ var server = http.createServer(app);
 
 mongoose.connect(config.database);
 var db = mongoose.connection;
-//passport authenticate
-//require('./config/passport')(passport);
+//passport authenticate middleware should be loaded after the loading the routes
+require('./config/passport')(passport);
 
 fs.readdirSync('./apis').forEach(function (file) {
     if (file.substr(-3) == '.js') {
         var route = require('./apis/' + file);
-        route.controller(app);
+        route.controller(app,passport);
     }
 });
 

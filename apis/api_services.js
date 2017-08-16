@@ -4,14 +4,13 @@
 
 var Service = require('../models/services');
 
-module.exports.controller = function (app) {
-    app.get('/', function (req, res, next) {
+module.exports.controller = function (app, passport) {
+    app.get('/',passport.authenticate('jwt', {session: true}),function (req, res, next) {
         res.status(200).json({msg: "Hello a api"});
         return next();
     });
-
     //api get service
-    app.get('/api/v1/services', function (req, res, next) {
+    app.get('/api/v1/services',passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var limit = 10;
         var page = 0;
         if (req.query.limit) {
@@ -30,7 +29,7 @@ module.exports.controller = function (app) {
 
     });
     //api get services by type
-    app.get('/api/v1/services/type/:type', function (req, res, next) {
+    app.get('/api/v1/services/type/:type', passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var serviceType = req.params.type;
         var limit = 10;
         var page = 0;
@@ -50,7 +49,7 @@ module.exports.controller = function (app) {
     });
 
     //api get services by group
-    app.get('/api/v1/services/group/:group', function (req, res, next) {
+    app.get('/api/v1/services/group/:group', passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var serviceGroup = req.params.group;
         var limit = 10;
         var page = 0;
@@ -70,7 +69,7 @@ module.exports.controller = function (app) {
         });
     });
     //api get services by group
-    app.get('/api/v1/activeservices', function (req, res, next) {
+    app.get('/api/v1/activeservices',passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var limit = 10;
         var page = 1;
         if (req.query.limit) {
@@ -88,7 +87,7 @@ module.exports.controller = function (app) {
         });
     });
 
-    app.post('/api/v1/services', function (req, res, next) {
+    app.post('/api/v1/services',passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var name = req.body.name ? req.body.name : '';
         var active = req.body.active ? req.body.active : true;
         var prices = req.body.price ? req.body.price : new Array();
@@ -153,7 +152,7 @@ module.exports.controller = function (app) {
     });
 
     //api get service by id and name
-    app.get('/api/v1/services/:id', function (req, res) {
+    app.get('/api/v1/services/:id',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -171,7 +170,7 @@ module.exports.controller = function (app) {
         });
     });
 
-    app.put('/api/v1/services/:id', function (req, res) {
+    app.put('/api/v1/services/:id',passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -241,7 +240,7 @@ module.exports.controller = function (app) {
     });
 
     //api service delete by id
-    app.delete('/api/v1/services/:id', function (req, res) {
+    app.delete('/api/v1/services/:id',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -254,7 +253,7 @@ module.exports.controller = function (app) {
         });
     });
 
-    app.get('/api/v1/services/:id/price', function (req, res) {
+    app.get('/api/v1/services/:id/price',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -267,7 +266,7 @@ module.exports.controller = function (app) {
         });
 
     });
-    app.get('/api/v1/services/:id/execute', function (req, res) {
+    app.get('/api/v1/services/:id/execute',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -281,7 +280,7 @@ module.exports.controller = function (app) {
 
     });
 
-    app.put('/api/v1/services/:id/softdelete', function (req, res) {
+    app.put('/api/v1/services/:id/softdelete',passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -295,7 +294,7 @@ module.exports.controller = function (app) {
     });
 
     //api check exit by id
-    app.get('/api/v1/services/:id/exits', function (req, res) {
+    app.get('/api/v1/services/:id/exits',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404);
         }
@@ -312,7 +311,7 @@ module.exports.controller = function (app) {
     });
 
     //api replace attributes by id
-    app.post('/api/v1/services/:id/replace',function(req,res){
+    app.post('/api/v1/services/:id/replace',passport.authenticate('jwt', {session: true}),function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
