@@ -3,14 +3,16 @@
  */
 
 var Service = require('../models/services');
+var jwt = require('jsonwebtoken');
+var config = require('../config/database');
 
 module.exports.controller = function (app, passport) {
-    app.get('/',passport.authenticate('jwt', {session: true}),function (req, res, next) {
+    app.get('/', function (req, res, next) {
         res.status(200).json({msg: "Hello a api"});
         return next();
     });
     //api get service
-    app.get('/api/v1/services',passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/services', passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var limit = 10;
         var page = 0;
         if (req.query.limit) {
@@ -69,7 +71,7 @@ module.exports.controller = function (app, passport) {
         });
     });
     //api get services by group
-    app.get('/api/v1/activeservices',passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/activeservices', passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var limit = 10;
         var page = 1;
         if (req.query.limit) {
@@ -87,7 +89,7 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.post('/api/v1/services',passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.post('/api/v1/services', passport.authenticate('jwt', {session: true}), function (req, res, next) {
         var name = req.body.name ? req.body.name : '';
         var active = req.body.active ? req.body.active : true;
         var prices = req.body.price ? req.body.price : new Array();
@@ -110,18 +112,6 @@ module.exports.controller = function (app, passport) {
                 });
             }
         }
-
-        var updateArr = new Array();
-        if (updates.length > 0) {
-            for (var i = 0; i < updates.length; i++) {
-                var time = updates[i].time ? updates[i].time : "";
-                var updateBy = updates[i].updateBy ? updates[i].updateBy : "";
-                updateArr.push({
-                    price_origin: time, updateBy: updateBy
-                });
-            }
-        }
-
         var executeArr = new Array();
         if (executes.length > 0) {
             for (var i = 0; i < executes.length; i++) {
@@ -136,7 +126,7 @@ module.exports.controller = function (app, passport) {
             name: name,
             active: active,
             price: priceArr,
-            update: updateArr,
+            //update: updateArr,
             execute: executeArr,
             group: group,
             type: type
@@ -152,7 +142,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api get service by id and name
-    app.get('/api/v1/services/:id',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.get('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -170,7 +160,7 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.put('/api/v1/services/:id',passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.put('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -197,12 +187,16 @@ module.exports.controller = function (app, passport) {
                 });
             }
         }
-
+        //get user id
+        var userId = '';
+        jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
+            userId = decoded._doc._id;
+        });
         var updateArr = new Array();
         if (updates.length > 0) {
             for (var i = 0; i < updates.length; i++) {
                 var time = updates[i].time ? updates[i].time : 0;
-                var updateBy = updates[i].updateBy ? updates[i].updateBy : 0;
+                var updateBy = userId;
                 updateArr.push({
                     time: time, updateBy: updateBy
                 });
@@ -218,7 +212,6 @@ module.exports.controller = function (app, passport) {
                 });
             }
         }
-
         Service.findOne({_id: req.params.id}).exec(function (err, service) {
             if (err) {
                 res.status(500);
@@ -240,7 +233,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api service delete by id
-    app.delete('/api/v1/services/:id',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.delete('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -253,7 +246,7 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.get('/api/v1/services/:id/price',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.get('/api/v1/services/:id/price', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -266,7 +259,7 @@ module.exports.controller = function (app, passport) {
         });
 
     });
-    app.get('/api/v1/services/:id/execute',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.get('/api/v1/services/:id/execute', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -280,7 +273,7 @@ module.exports.controller = function (app, passport) {
 
     });
 
-    app.put('/api/v1/services/:id/softdelete',passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.put('/api/v1/services/:id/softdelete', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -294,7 +287,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api check exit by id
-    app.get('/api/v1/services/:id/exits',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.get('/api/v1/services/:id/exits', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404);
         }
@@ -311,7 +304,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api replace attributes by id
-    app.post('/api/v1/services/:id/replace',passport.authenticate('jwt', {session: true}),function (req, res) {
+    app.post('/api/v1/services/:id/replace', passport.authenticate('jwt', {session: true}), function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -339,16 +332,22 @@ module.exports.controller = function (app, passport) {
             }
         }
 
+        //get user id
+        var userId = '';
+        jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
+            userId = decoded._doc._id;
+        });
         var updateArr = new Array();
         if (updates.length > 0) {
             for (var i = 0; i < updates.length; i++) {
                 var time = updates[i].time ? updates[i].time : 0;
-                var updateBy = updates[i].updateBy ? updates[i].updateBy : 0;
+                var updateBy = userId;
                 updateArr.push({
                     time: time, updateBy: updateBy
                 });
             }
         }
+
 
         var executeArr = new Array();
         if (executes.length > 0) {
@@ -381,3 +380,17 @@ module.exports.controller = function (app, passport) {
     });
 
 };
+
+getToken = function (headers) {
+    if (headers && headers.authorization) {
+        var parted = headers.authorization.split(' ');
+        if (parted.length === 2) {
+            return parted[1];
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
+};
+

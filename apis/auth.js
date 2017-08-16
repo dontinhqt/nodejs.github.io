@@ -51,7 +51,10 @@ module.exports.controller = function (app, passport) {
         if (email == '') {
             res.status(400).json({'msg': 'Email required !.'});
         }
-
+        var rexg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        if(!rexg.test(email)){
+            res.status(400).json({'msg': 'Email is not valid !.'});
+        }
         var user = new User({
             username: username,
             password: password,
