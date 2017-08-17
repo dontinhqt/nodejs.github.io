@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 // set up a mongoose model
 var ServiceSchema = new Schema({
-    name: {
+    serviceName: {
         type: String,
         unique: true,
     },
@@ -49,9 +49,8 @@ var ServiceSchema = new Schema({
         default: 1
     },
     createdAT: {type: Date, default: Date.now, index: true},
-    updateAT: {type: Date, default: Date.now, index: true},
     update: [{
-        time: {type: String},
+        time: {type: Date, default: Date.now, index: true},
         updateBy: {type: String}
     }],
     execute: [{name: {type: String}}]

@@ -7,13 +7,17 @@ var express = require('express'),
     errorHandler = require('errorhandler'),
     fs = require('fs'),
     mongoose = require('mongoose'),
+    //load json web token
+    jwt = require('jsonwebtoken'),
     morgan = require('morgan');
 
 var app = module.exports = express();
+var apiRoutes = express.Router();
 
-var passport = require('passport');
+//var passport = require('passport');
 var config = require('./config/database');
-
+//hashcode set set authenticate
+var default_token = require('./config/token');
 
 // all environments
 app.set('port', process.env.PORT || 8000);
@@ -22,24 +26,28 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
+app.use(methodOverride());
+
+
 app.use(function (req, res, next) {
-    res.setHeader('Content-Type','application/json');
+    res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+    req.headers.authorization = default_token.secret_token;
     next();
 });
 //user passport session and express session
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(methodOverride());
+//app.use(passport.initialize());
+//app.use(passport.session());
+
+//passport serialize a User
+//passport.serializeUser(function(user, done) {
+//    done(null, user);
+//});
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
-//passport serialize a User
-passport.serializeUser(function(user, done) {
-    done(null, user);
-});
 
 
 if ('development' == app.get('env')) {
@@ -54,13 +62,32 @@ var server = http.createServer(app);
 
 mongoose.connect(config.database);
 var db = mongoose.connection;
-//passport authenticate middleware should be loaded after the loading the routes
-require('./config/passport')(passport);
+
+// route middleware to verify a token
+apiRoutes.use(function (req, res, next) {
+    var token = req.headers.authorization ? req.headers.authorization : "";
+    if (token) {
+        jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
+            if (err) {
+                return res.json({success: false, message: 'Failed to authenticate token.'});
+            }
+            req.decoded = decoded;
+            next();
+        });
+    } else {
+
+        return res.status(403).send({
+            success: false,
+            message: 'No token provided.'
+        });
+
+    }
+});
 
 fs.readdirSync('./apis').forEach(function (file) {
     if (file.substr(-3) == '.js') {
         var route = require('./apis/' + file);
-        route.controller(app,passport);
+        route.controller(app, apiRoutes);
     }
 });
 

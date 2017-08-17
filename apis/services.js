@@ -6,13 +6,13 @@ var Service = require('../models/services');
 var jwt = require('jsonwebtoken');
 var config = require('../config/database');
 
-module.exports.controller = function (app, passport) {
-    app.get('/', function (req, res, next) {
+module.exports.controller = function (app, auth) {
+    app.get('/', auth, function (req, res, next) {
         res.status(200).json({msg: "Hello a api"});
         return next();
     });
     //api get service
-    app.get('/api/v1/services', passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/services', auth, function (req, res, next) {
         var limit = 10;
         var page = 0;
         if (req.query.limit) {
@@ -31,7 +31,7 @@ module.exports.controller = function (app, passport) {
 
     });
     //api get services by type
-    app.get('/api/v1/services/type/:type', passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/services/type/:type', auth, function (req, res, next) {
         var serviceType = req.params.type;
         var limit = 10;
         var page = 0;
@@ -51,7 +51,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api get services by group
-    app.get('/api/v1/services/group/:group', passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/services/group/:group', auth, function (req, res, next) {
         var serviceGroup = req.params.group;
         var limit = 10;
         var page = 0;
@@ -71,7 +71,7 @@ module.exports.controller = function (app, passport) {
         });
     });
     //api get services by group
-    app.get('/api/v1/activeservices', passport.authenticate('jwt', {session: true}), function (req, res, next) {
+    app.get('/api/v1/activeservices', auth, function (req, res, next) {
         var limit = 10;
         var page = 1;
         if (req.query.limit) {
@@ -89,18 +89,44 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.post('/api/v1/services', passport.authenticate('jwt', {session: true}), function (req, res, next) {
-        var name = req.body.name ? req.body.name : '';
+    app.post('/api/v1/services', auth, function (req, res, next) {
+
+        var name = req.body.serviceName ? req.body.serviceName : '';
         var active = req.body.active ? req.body.active : true;
         var prices = req.body.price ? req.body.price : new Array();
-        var updates = req.body.update ? req.body.update : new Array();
+
         var executes = req.body.execute ? req.body.execute : new Array();
         var group = req.body.group ? req.body.group : '';
         var type = req.body.type ? req.body.type : '';
+
+
+        if (name == '') {
+            res.status(400).json({msg: "Field service name required!"});
+        }
+        if (!active) {
+            res.status(400).json({msg: "Field active required!"});
+        }
+        if (group == "") {
+            res.status(400).json({msg: "Field group required!"});
+        }
+        if (type == "") {
+            res.status(400).json({msg: "Field type required!"});
+        }
+        if (executes.length == 0) {
+            res.status(400).json({msg: 'Field execute required!'});
+        }
+
+        if (prices.length == 0) {
+            res.status(400).json({msg: "Field price required!"});
+        }
+
         var priceArr = new Array();
-        if (prices) {
+        if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
+                if (price_origin == "") {
+                    res.status(400).json({msg: "Field price origin required"});
+                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -112,10 +138,18 @@ module.exports.controller = function (app, passport) {
                 });
             }
         }
+
         var executeArr = new Array();
         if (executes.length > 0) {
             for (var i = 0; i < executes.length; i++) {
-                var name = executes[i].name ? executes[i].name : 0;
+                var name = executes[i].name ? executes[i].name : "";
+                var id = executes[i].id ? executes[i].id : "";
+                if (name == "") {
+                    res.status(400).json({msg: 'Field execute name required!'});
+                }
+                if (id == "") {
+                    res.status(400).json({msg: "Field execute id required!"});
+                }
                 executeArr.push({
                     name: name
                 });
@@ -123,26 +157,24 @@ module.exports.controller = function (app, passport) {
         }
 
         var service = new Service({
-            name: name,
+            serviceName: name,
             active: active,
             price: priceArr,
-            //update: updateArr,
             execute: executeArr,
             group: group,
             type: type
         });
         service.save(function (err, response) {
             if (err) {
-                res.status(400).json(err);
-                return next;
+                res.status(500);
             }
             res.status(200).json({msg: "Service has been created successfully!"});
-            return next;
+            return next();
         });
     });
 
     //api get service by id and name
-    app.get('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.get('/api/v1/services/:id', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
@@ -160,22 +192,45 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.put('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.put('/api/v1/services/:id', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
 
-        var name = req.body.name ? req.body.name : '';
-        var active = true;
+        var name = req.body.serviceName ? req.body.serviceName : '';
+        var active = req.body.active ? req.body.active : false;
         var prices = req.body.price ? req.body.price : new Array();
-        var updates = req.body.update ? req.body.update : new Array();
         var executes = req.body.execute ? req.body.execute : new Array();
         var group = req.body.group ? req.body.group : '';
         var type = req.body.type ? req.body.type : '';
+
+        if (name == "") {
+            res.status(400).json({msg: "Field service name required!"});
+        }
+        if (!active) {
+            res.status(400).json({msg: "Field active required!"});
+        }
+        if (group == "") {
+            res.status(400).json({msg: "Field group required!"});
+        }
+        if (type == "") {
+            res.status(400).json({msg: "Field type required!"});
+        }
+        if (executes.length == 0) {
+            res.status(400).json({msg: 'Field execute required!'});
+        }
+
+        if (prices.length == 0) {
+            res.status(400).json({msg: "Field price required!"});
+        }
+
         var priceArr = new Array();
-        if (prices) {
+        if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
+                if (price_origin == "") {
+                    res.status(400).json({msg: "Field price origin required"});
+                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -187,53 +242,57 @@ module.exports.controller = function (app, passport) {
                 });
             }
         }
-        //get user id
-        var userId = '';
-        jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
-            userId = decoded._doc._id;
-        });
-        var updateArr = new Array();
-        if (updates.length > 0) {
-            for (var i = 0; i < updates.length; i++) {
-                var time = updates[i].time ? updates[i].time : 0;
-                var updateBy = userId;
-                updateArr.push({
-                    time: time, updateBy: updateBy
-                });
-            }
-        }
 
         var executeArr = new Array();
         if (executes.length > 0) {
             for (var i = 0; i < executes.length; i++) {
                 var name = executes[i].name ? executes[i].name : "";
+                var id = executes[i].id ? executes[i].id : "";
+                if (name == "") {
+                    res.status(400).json({msg: 'Field execute name required!'});
+                }
+                if (id == "") {
+                    res.status(400).json({msg: "Field execute id required!"});
+                }
                 executeArr.push({
+                    id: id,
                     name: name
                 });
             }
         }
-        Service.findOne({_id: req.params.id}).exec(function (err, service) {
+        var updateArr = new Array();
+        jwt.verify(getToken(req.headers), config.secret, function (err, userDecode) {
             if (err) {
                 res.status(500);
             }
-            service.name = name;
-            service.active = active;
-            service.price = priceArr;
-            service.update = updateArr;
-            service.execute = executeArr;
-            service.group = group;
-            service.type = type;
-            service.save(function (err, resp) {
+
+            updateArr.push({updateBy: userDecode._doc._id});
+
+            Service.findOne({_id: req.params.id}).exec(function (err, service) {
                 if (err) {
                     res.status(500);
                 }
-                res.status(200).json({msg: 'Updated successfully!'});
+                service.serviceName = name;
+                service.active = active;
+                service.price = priceArr;
+                service.update = updateArr,
+                service.execute = executeArr;
+                service.group = group;
+                service.type = type;
+                service.save(function (err, resp) {
+                    if (err) {
+                        res.status(500);
+                    }
+                    res.status(200).json({msg: 'Updated successfully!'});
+                });
+
             });
         });
+
     });
 
     //api service delete by id
-    app.delete('/api/v1/services/:id', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.delete('/api/v1/services/:id', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -246,7 +305,7 @@ module.exports.controller = function (app, passport) {
         });
     });
 
-    app.get('/api/v1/services/:id/price', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.get('/api/v1/services/:id/price', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -259,7 +318,7 @@ module.exports.controller = function (app, passport) {
         });
 
     });
-    app.get('/api/v1/services/:id/execute', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.get('/api/v1/services/:id/execute', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -273,7 +332,7 @@ module.exports.controller = function (app, passport) {
 
     });
 
-    app.put('/api/v1/services/:id/softdelete', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.put('/api/v1/services/:id/softdelete', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({msg: "Request not fount"});
         }
@@ -287,7 +346,7 @@ module.exports.controller = function (app, passport) {
     });
 
     //api check exit by id
-    app.get('/api/v1/services/:id/exits', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.get('/api/v1/services/:id/exits', function (req, res) {
         if (!req.params.id) {
             res.status(404);
         }
@@ -304,22 +363,45 @@ module.exports.controller = function (app, passport) {
     });
 
     //api replace attributes by id
-    app.post('/api/v1/services/:id/replace', passport.authenticate('jwt', {session: true}), function (req, res) {
+    app.post('/api/v1/services/:id/replace', function (req, res) {
         if (!req.params.id) {
             res.status(404).json({'msg': 'Request not fount'});
         }
 
-        var name = req.body.name ? req.body.name : '';
-        var active = true;
+        var name = req.body.serviceName ? req.body.serviceName : '';
+        var active = req.body.active ? req.body.active : false;
         var prices = req.body.price ? req.body.price : new Array();
-        var updates = req.body.update ? req.body.update : new Array();
         var executes = req.body.execute ? req.body.execute : new Array();
         var group = req.body.group ? req.body.group : '';
         var type = req.body.type ? req.body.type : '';
+
+        if (name =="") {
+            res.status(400).json({msg: "Field service name required!"});
+        }
+        if (!active) {
+            res.status(400).json({msg: "Field active required!"});
+        }
+        if (group == "") {
+            res.status(400).json({msg: "Field group required!"});
+        }
+        if (type == "") {
+            res.status(400).json({msg: "Field type required!"});
+        }
+        if (executes.length == 0) {
+            res.status(400).json({msg: 'Field execute required!'});
+        }
+
+        if (prices.length == 0) {
+            res.status(400).json({msg: "Field price required!"});
+        }
+
         var priceArr = new Array();
-        if (prices) {
+        if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
+                if (price_origin == "") {
+                    res.status(400).json({msg: "Field price origin required"});
+                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -332,51 +414,52 @@ module.exports.controller = function (app, passport) {
             }
         }
 
-        //get user id
-        var userId = '';
-        jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
-            userId = decoded._doc._id;
-        });
-        var updateArr = new Array();
-        if (updates.length > 0) {
-            for (var i = 0; i < updates.length; i++) {
-                var time = updates[i].time ? updates[i].time : 0;
-                var updateBy = userId;
-                updateArr.push({
-                    time: time, updateBy: updateBy
-                });
-            }
-        }
-
-
         var executeArr = new Array();
         if (executes.length > 0) {
             for (var i = 0; i < executes.length; i++) {
                 var name = executes[i].name ? executes[i].name : "";
+                var id = executes[i].id ? executes[i].id : "";
+                if (name == "") {
+                    res.status(400).json({msg: 'Field execute name required!'});
+                }
+                if (id == "") {
+                    res.status(400).json({msg: "Field execute id required!"});
+                }
                 executeArr.push({
                     name: name
                 });
             }
         }
 
-        Service.findOne({_id: req.params.id}).exec(function (err, service) {
+        var updateArr = new Array();
+        jwt.verify(getToken(req.headers), config.secret, function (err, userDecode) {
             if (err) {
                 res.status(500);
             }
-            service.name = name;
-            service.active = active;
-            service.price = priceArr;
-            service.update = updateArr;
-            service.execute = executeArr;
-            service.group = group;
-            service.type = type;
-            service.save(function (err, resp) {
+
+            updateArr.push({updateBy: userDecode._doc._id});
+
+            Service.findOne({_id: req.params.id}).exec(function (err, service) {
                 if (err) {
                     res.status(500);
                 }
-                res.status(200).json({msg: 'Updated successfully!'});
+                service.serviceName = name;
+                service.active = active;
+                service.price = priceArr;
+                service.update = updateArr,
+                service.execute = executeArr;
+                service.group = group;
+                service.type = type;
+                service.save(function (err, resp) {
+                    if (err) {
+                        res.status(500);
+                    }
+                    res.status(200).json({msg: 'Updated successfully!'});
+                });
+
             });
         });
+
     });
 
 };
@@ -386,6 +469,7 @@ getToken = function (headers) {
         var parted = headers.authorization.split(' ');
         if (parted.length === 2) {
             return parted[1];
+
         } else {
             return null;
         }
