@@ -17,7 +17,7 @@ module.exports.controller = function (app, passport) {
 
         User.findOne({username: username}, function (err, user) {
             // console.log(user);
-            if (err) throw err;
+            if (err) res.status(500);
 
             if (!user) {
                 res.send({success: false, msg: 'Authentication failed. User not found.'});
