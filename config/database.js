@@ -4,5 +4,5 @@
 
 module.exports = {
     'secret':'2C44-4D44-WppQ38S',
-    'database':'mongodb://{server}/{database-name}'
+    'database':'mongodb://localhost/node-mongod'
 }

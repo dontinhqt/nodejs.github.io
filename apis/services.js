@@ -5,11 +5,12 @@
 var Service = require('../models/services');
 var jwt = require('jsonwebtoken');
 var config = require('../config/database');
+var Validator = require('../config/validate');
 
 module.exports.controller = function (app, auth) {
-    app.get('/', auth, function (req, res, next) {
+    app.post('/', function (req, res, next) {
         res.status(200).json({msg: "Hello a api"});
-        return next();
+        return next;
     });
     //api get service
     app.get('/api/v1/services', auth, function (req, res, next) {
@@ -91,6 +92,12 @@ module.exports.controller = function (app, auth) {
 
     app.post('/api/v1/services', auth, function (req, res, next) {
 
+        //add validate data
+        var isValid = Validator(req.body);
+        if (isValid.code==400) {
+            return res.status(400).json({msg: isValid.msg});
+        }
+
         var name = req.body.serviceName ? req.body.serviceName : '';
         var active = req.body.active ? req.body.active : true;
         var prices = req.body.price ? req.body.price : new Array();
@@ -100,33 +107,10 @@ module.exports.controller = function (app, auth) {
         var type = req.body.type ? req.body.type : '';
 
 
-        if (name == '') {
-            res.status(400).json({msg: "Field service name required!"});
-        }
-        if (!active) {
-            res.status(400).json({msg: "Field active required!"});
-        }
-        if (group == "") {
-            res.status(400).json({msg: "Field group required!"});
-        }
-        if (type == "") {
-            res.status(400).json({msg: "Field type required!"});
-        }
-        if (executes.length == 0) {
-            res.status(400).json({msg: 'Field execute required!'});
-        }
-
-        if (prices.length == 0) {
-            res.status(400).json({msg: "Field price required!"});
-        }
-
         var priceArr = new Array();
         if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
-                if (price_origin == "") {
-                    res.status(400).json({msg: "Field price origin required"});
-                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -144,14 +128,9 @@ module.exports.controller = function (app, auth) {
             for (var i = 0; i < executes.length; i++) {
                 var name = executes[i].name ? executes[i].name : "";
                 var id = executes[i].id ? executes[i].id : "";
-                if (name == "") {
-                    res.status(400).json({msg: 'Field execute name required!'});
-                }
-                if (id == "") {
-                    res.status(400).json({msg: "Field execute id required!"});
-                }
                 executeArr.push({
-                    name: name
+                    name: name,
+                    id:id
                 });
             }
         }
@@ -194,7 +173,11 @@ module.exports.controller = function (app, auth) {
 
     app.put('/api/v1/services/:id', function (req, res) {
         if (!req.params.id) {
-            res.status(404).json({'msg': 'Request not fount'});
+           return res.status(404).json({'msg': 'Request not fount'});
+        }
+        var isValid = Validator(req.body);
+        if (isValid.code==400) {
+            return res.status(400).json({msg: isValid.msg});
         }
 
         var name = req.body.serviceName ? req.body.serviceName : '';
@@ -204,33 +187,10 @@ module.exports.controller = function (app, auth) {
         var group = req.body.group ? req.body.group : '';
         var type = req.body.type ? req.body.type : '';
 
-        if (name == "") {
-            res.status(400).json({msg: "Field service name required!"});
-        }
-        if (!active) {
-            res.status(400).json({msg: "Field active required!"});
-        }
-        if (group == "") {
-            res.status(400).json({msg: "Field group required!"});
-        }
-        if (type == "") {
-            res.status(400).json({msg: "Field type required!"});
-        }
-        if (executes.length == 0) {
-            res.status(400).json({msg: 'Field execute required!'});
-        }
-
-        if (prices.length == 0) {
-            res.status(400).json({msg: "Field price required!"});
-        }
-
         var priceArr = new Array();
         if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
-                if (price_origin == "") {
-                    res.status(400).json({msg: "Field price origin required"});
-                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -248,12 +208,6 @@ module.exports.controller = function (app, auth) {
             for (var i = 0; i < executes.length; i++) {
                 var name = executes[i].name ? executes[i].name : "";
                 var id = executes[i].id ? executes[i].id : "";
-                if (name == "") {
-                    res.status(400).json({msg: 'Field execute name required!'});
-                }
-                if (id == "") {
-                    res.status(400).json({msg: "Field execute id required!"});
-                }
                 executeArr.push({
                     id: id,
                     name: name
@@ -365,9 +319,12 @@ module.exports.controller = function (app, auth) {
     //api replace attributes by id
     app.post('/api/v1/services/:id/replace', function (req, res) {
         if (!req.params.id) {
-            res.status(404).json({'msg': 'Request not fount'});
+            return res.status(404).json({'msg': 'Request not fount'});
         }
-
+        var isValid = Validator(req.body);
+        if (isValid.code==400) {
+            return res.status(400).json({msg: isValid.msg});
+        }
         var name = req.body.serviceName ? req.body.serviceName : '';
         var active = req.body.active ? req.body.active : false;
         var prices = req.body.price ? req.body.price : new Array();
@@ -375,33 +332,10 @@ module.exports.controller = function (app, auth) {
         var group = req.body.group ? req.body.group : '';
         var type = req.body.type ? req.body.type : '';
 
-        if (name =="") {
-            res.status(400).json({msg: "Field service name required!"});
-        }
-        if (!active) {
-            res.status(400).json({msg: "Field active required!"});
-        }
-        if (group == "") {
-            res.status(400).json({msg: "Field group required!"});
-        }
-        if (type == "") {
-            res.status(400).json({msg: "Field type required!"});
-        }
-        if (executes.length == 0) {
-            res.status(400).json({msg: 'Field execute required!'});
-        }
-
-        if (prices.length == 0) {
-            res.status(400).json({msg: "Field price required!"});
-        }
-
         var priceArr = new Array();
         if (prices.length > 0) {
             for (var i = 0; i < prices.length; i++) {
                 var price_origin = prices[i].price_origin ? prices[i].price_origin : 0;
-                if (price_origin == "") {
-                    res.status(400).json({msg: "Field price origin required"});
-                }
                 var first_price = prices[i].first_price ? prices[i].first_price : 0;
                 var second_price = prices[i].second_price ? prices[i].second_price : 0;
                 var isCover = prices[i].isCover ? prices[i].isCover : false;
@@ -419,14 +353,9 @@ module.exports.controller = function (app, auth) {
             for (var i = 0; i < executes.length; i++) {
                 var name = executes[i].name ? executes[i].name : "";
                 var id = executes[i].id ? executes[i].id : "";
-                if (name == "") {
-                    res.status(400).json({msg: 'Field execute name required!'});
-                }
-                if (id == "") {
-                    res.status(400).json({msg: "Field execute id required!"});
-                }
                 executeArr.push({
-                    name: name
+                    name: name,
+                    id:id
                 });
             }
         }
