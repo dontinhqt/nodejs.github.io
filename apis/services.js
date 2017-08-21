@@ -167,7 +167,10 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json(service);
+            if(service){
+                res.status(200).json(service);
+            }
+            res.status(404).json({'msg': 'Request not fount'});
         });
     });
 
@@ -226,20 +229,22 @@ module.exports.controller = function (app, auth) {
                 if (err) {
                     res.status(500);
                 }
-                service.serviceName = name;
-                service.active = active;
-                service.price = priceArr;
-                service.update = updateArr,
-                service.execute = executeArr;
-                service.group = group;
-                service.type = type;
-                service.save(function (err, resp) {
-                    if (err) {
-                        res.status(500);
-                    }
-                    res.status(200).json({msg: 'Updated successfully!'});
-                });
-
+                if(service) {
+                    service.serviceName = name;
+                    service.active = active;
+                    service.price = priceArr;
+                    service.update = updateArr,
+                        service.execute = executeArr;
+                    service.group = group;
+                    service.type = type;
+                    service.save(function (err, resp) {
+                        if (err) {
+                            res.status(500);
+                        }
+                        res.status(200).json({msg: 'Updated successfully!'});
+                    });
+                }
+                res.status(404).json({'msg': 'Request not fount'});
             });
         });
 
@@ -255,7 +260,10 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json({msg: 'Deleted successfully!'});
+            if(resp) {
+                res.status(200).json({msg: 'Deleted successfully!'});
+            }
+            res.status(404).json({msg: "Request not fount"});
         });
     });
 
@@ -268,7 +276,10 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json(price);
+            if(price) {
+                res.status(200).json(price);
+            }
+            res.status(404).json({msg: "Request not fount"});
         });
 
     });
@@ -281,7 +292,10 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json(execute);
+            if(execute){
+                res.status(200).json(execute);
+            }
+            res.status(404).json({msg: "Request not fount"});
         });
 
     });
@@ -294,7 +308,10 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json({msg: "Update status active has been successfully!"});
+            if(resp) {
+                res.status(200).json({msg: "Update status active has been successfully!"});
+            }
+            res.status(404).json({msg: "Request not fount"});
         });
 
     });
@@ -307,6 +324,9 @@ module.exports.controller = function (app, auth) {
         Service.findOne({_id: req.params.id}).exec(function (err, service) {
             if (err) {
                 res.status(500);
+            }
+            if(!service){
+                res.status(404).json({msg: "Request not fount"});
             }
             var isValid = true;
             if (!service) {
@@ -371,6 +391,9 @@ module.exports.controller = function (app, auth) {
             Service.findOne({_id: req.params.id}).exec(function (err, service) {
                 if (err) {
                     res.status(500);
+                }
+                if(!service){
+                    res.status(404).json({msg: "Request not fount"});
                 }
                 service.serviceName = name;
                 service.active = active;
