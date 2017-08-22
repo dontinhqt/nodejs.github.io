@@ -22,7 +22,7 @@ module.exports.controller = function (app, auth) {
         if (req.query.page) {
             page = parseInt(req.query.page);
         }
-        Service.find().skip(page).limit(limit).exec(function (err, services) {
+        Service.find({}).exec(function (err, services) {
             if (err) {
                 res.status(500).json({"err": err});
                 return next(err);
@@ -147,7 +147,7 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
-            res.status(200).json({msg: "Service has been created successfully!"});
+            res.status(201).json({msg: "Service has been created successfully!"});
             return next();
         });
     });
@@ -244,7 +244,7 @@ module.exports.controller = function (app, auth) {
                         res.status(200).json({msg: 'Updated successfully!'});
                     });
                 }
-                res.status(404).json({'msg': 'Request not fount'});
+                res.status(422).json({msg: "Request cannot process"});
             });
         });
 
@@ -260,10 +260,11 @@ module.exports.controller = function (app, auth) {
             if (err) {
                 res.status(500);
             }
+            console.log(resp);
             if(resp) {
-                res.status(200).json({msg: 'Deleted successfully!'});
+                res.status(204).json({msg: 'Deleted successfully!'});
             }
-            res.status(404).json({msg: "Request not fount"});
+            res.status(422).json({msg: "Request cannot process"});
         });
     });
 
@@ -309,9 +310,9 @@ module.exports.controller = function (app, auth) {
                 res.status(500);
             }
             if(resp) {
-                res.status(200).json({msg: "Update status active has been successfully!"});
+                res.status(204).json({msg: "Update status active has been successfully!"});
             }
-            res.status(404).json({msg: "Request not fount"});
+            res.status(422).json({msg: "Request cannot process"});
         });
 
     });
@@ -319,14 +320,14 @@ module.exports.controller = function (app, auth) {
     //api check exit by id
     app.get('/api/v1/services/:id/exits', function (req, res) {
         if (!req.params.id) {
-            res.status(404);
+            res.status(404).json({msg:'Request not fount'});
         }
         Service.findOne({_id: req.params.id}).exec(function (err, service) {
             if (err) {
                 res.status(500);
             }
             if(!service){
-                res.status(404).json({msg: "Request not fount"});
+                res.status(422).json({msg: "Request cannot process"});
             }
             var isValid = true;
             if (!service) {
@@ -345,7 +346,7 @@ module.exports.controller = function (app, auth) {
         if (isValid.code==400) {
             return res.status(400).json({msg: isValid.msg});
         }
-        var name = req.body.serviceName ? req.body.serviceName : '';
+        var serviceName = req.body.serviceName ? req.body.serviceName : '';
         var active = req.body.active ? req.body.active : false;
         var prices = req.body.price ? req.body.price : new Array();
         var executes = req.body.execute ? req.body.execute : new Array();
@@ -393,9 +394,9 @@ module.exports.controller = function (app, auth) {
                     res.status(500);
                 }
                 if(!service){
-                    res.status(404).json({msg: "Request not fount"});
+                    res.status(422).json({msg: "Request cannot process"});
                 }
-                service.serviceName = name;
+                service.serviceName = serviceName;
                 service.active = active;
                 service.price = priceArr;
                 service.update = updateArr,
@@ -406,7 +407,7 @@ module.exports.controller = function (app, auth) {
                     if (err) {
                         res.status(500);
                     }
-                    res.status(200).json({msg: 'Updated successfully!'});
+                    res.status(204).json({msg: 'Updated successfully!'});
                 });
 
             });

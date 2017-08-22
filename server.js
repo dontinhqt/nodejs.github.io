@@ -69,7 +69,7 @@ apiRoutes.use(function (req, res, next) {
     if (token) {
         jwt.verify(getToken(req.headers), config.secret, function (err, decoded) {
             if (err) {
-                return res.json({success: false, message: 'Failed to authenticate token.'});
+                return res.status(401).json({msg: 'Failed to authenticate token.'});
             }
             req.decoded = decoded;
             next();
@@ -77,8 +77,7 @@ apiRoutes.use(function (req, res, next) {
     } else {
 
         return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
+            msg: 'No token provided.'
         });
 
     }
