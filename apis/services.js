@@ -22,7 +22,7 @@ module.exports.controller = function (app, auth) {
         if (req.query.page) {
             page = parseInt(req.query.page);
         }
-        Service.find({}).exec(function (err, services) {
+        Service.find().exec(function (err, services) {
             if (err) {
                 res.status(500).json({"err": err});
                 return next(err);
